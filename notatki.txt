@@ -1,0 +1,39 @@
+kręcenie linią
+
+void displayCB()
+{
+    static float deg = 0;
+    // clear buffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    // save the initial ModelView matrix before modifying ModelView matrix
+    glPushMatrix();
+
+    // tramsform camera
+    matrixView.identity();
+    matrixView.rotateY(cameraAngleY);
+    matrixView.rotateX(cameraAngleX);
+    matrixView.translate(0, 0, -cameraDistance);
+    glLoadMatrixf(matrixView.get());
+
+    drawRoom(20);
+    drawAxis(20);
+    //drawPlane(plane1, color1);
+    //drawPlane(plane2, color2);
+    //drawLine(line, color3);
+    drawLine(demoLine, color4);
+
+    Matrix4 m1;
+    m1.rotateX(deg++);
+    ray.setDirection(m1 * demoLine.getDirection());
+    drawLine(ray, color4 * 0.75f);
+    //m1.rotateX(45);
+    //ray.setDirection(m1 * demoLine.getDirection());
+    //drawLine(ray, color4 * 0.5f);
+    // draw info messages
+    showInfo();
+
+    glPopMatrix();
+
+    glutSwapBuffers();
+}
