@@ -43,6 +43,8 @@ public:
 	Vector3 intersect(const Line& line);
 	bool isIntersected(const Line& line);
 
+	float getDistance(const Vector3& point) const;
+
 protected:
 
 	Vector3 direction;

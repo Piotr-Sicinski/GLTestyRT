@@ -27,6 +27,7 @@
 
 #include "Ray.h"
 #include "Square.h"
+#include "Cube.h"
 
 // GLUT CALLBACK functions
 void displayCB();
@@ -57,6 +58,9 @@ void drawPlane(const Plane& p, const Vector3& color);
 void drawRay(const Line& line, const Vector3& color);
 void drawLine(const Line& line, const Vector3& color);
 void drawPoint(const Vector3& point, float scale, const Vector3& color);
+void drawSquare(const Square& square, const Vector3& color);
+void drawCube(const Cube& cube, const Vector3& color);
+
 
 // constants
 const int SCREEN_WIDTH = 500;
@@ -86,15 +90,17 @@ Matrix4 matrixView;
 Plane plane1;
 Plane plane2;
 Line line;
-Line demoLine;
-Line ray;
+Ray demoLine;
+Ray ray;
+Ray rays[10];
+Ray cameraLook;
 Vector3 color1;
 Vector3 color2;
 Vector3 color3;
 Vector3 color4;
 Cylinder cylinder; // to draw aline
-Ray demoRay;
-Ray reflRay;
+Square sq, sqScreen;
+Cube c;
 
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv)
@@ -148,6 +154,35 @@ void drawPlane(const Plane& plane, const Vector3& color)
 	glVertex3f(10, 10, 0);
 	glVertex3f(-10, 10, 0);
 	glVertex3f(-10, -10, 0);
+	glEnd();
+	glEnable(GL_CULL_FACE);
+
+	glPopMatrix();
+}
+
+void drawCube(const Cube& cube, const Vector3& color)
+{
+	FOR6i
+	{
+		drawSquare(cube.sides[i], color);
+	}
+}
+
+
+void drawSquare(const Square& square, const Vector3& color)
+{
+	const Vector3* p = square.getCorners();
+
+	glPushMatrix();
+
+	glDisable(GL_CULL_FACE);
+	glColor3f(color.x, color.y, color.z);
+	glNormal3f(0, 0, 1);
+	glBegin(GL_QUADS);
+	glVertex3f(p[0].x, p[0].y, p[0].z);
+	glVertex3f(p[1].x, p[1].y, p[1].z);
+	glVertex3f(p[2].x, p[2].y, p[2].z);
+	glVertex3f(p[3].x, p[3].y, p[3].z);
 	glEnd();
 	glEnable(GL_CULL_FACE);
 
@@ -375,11 +410,13 @@ bool initSharedMem()
 {
 	std::cout << "===== RT Tests by Piotr Sicinski =====" << std::endl;
 
-	plane1.set(2, 3, 1, 8);
+	plane1.set(2, 3, 1, 12);
 
 
 	demoLine.set(Vector3(1, 1, 1), Vector3(0, 0, 0));
 	ray.set(Vector3(1, 1, 1), Vector3(0, 0, 0));
+
+	c = Cube(2);
 
 	// plane and line colours
 	color1.set(0.8f, 0.9f, 0.8f); // plane1
@@ -515,13 +552,13 @@ void toPerspective()
 
 void displayCB()
 {
-	static float deg = 0;
+	Matrix4 m1, m2, m3, m4, m5, mc;
+	static int deg = 0;
+
 	// clear buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 	// save the initial ModelView matrix before modifying ModelView matrix
 	glPushMatrix();
-
 	// tramsform camera
 	matrixView.identity();
 	matrixView.rotateY(cameraAngleY);
@@ -531,39 +568,72 @@ void displayCB()
 
 	drawRoom(20);
 	drawAxis(20);
-	drawPlane(plane1, color1);
 
-	drawPoint(Vector3(3, 3, 3), 0.2f, color3);
+	if (deg % 100 == 0)
+	{
+		//Square sqMig;
+		//sqMig.move(Matrix4().scale(10));
+		//drawSquare(sqMig, Vector3(1, 0, 0));
 
-	Matrix4 m1, m2;
+		std::cout << "=====  =====" << std::endl;
+		std::cout << "cameraAngleX\t" << cameraAngleX << "\ncameraAngleY\t" << cameraAngleY << std::endl;
+		matrixView.printSelf();
+
+		m3.translate(0, 0, cameraDistance - 2);
+		m3.rotateX(-cameraAngleX);
+		m3.rotateY(-cameraAngleY);
+		cameraLook.setDirection(m3.getRotationMatrix() * Vector3(0, 0, 1));
+
+
+		//m5.scale()
+		sqScreen.reset();
+		sqScreen.transform(m3);
+	}
+	//drawRay(cameraLook, color3);
+	//drawSquare(sqScreen, Vector3(0.7, 1, 1));
+
+	//drawPlane(plane1, color1);
+	//drawPoint(Vector3(3, 3, 3), 0.2f, color3);
+
+
+	m4.scale(5);// .rotateZ(30).rotateX(30).rotateY(90);
+	m4.rotateZ(30);
+	m4.rotateX(-30);
+	m4.rotateY(90);
+	m4.translate(-5, 1, 1.8);
+	sq.reset();
+	sq.transform(m4);
+	drawSquare(sq, Vector3(0.6, 0, 0));
+
+	mc.scale(2).rotateX(30);
+	c.reset();
+	c.transform(mc);
+	drawCube(c, Vector3(0.5, 0.5, 0.5));
+
+	//rays[1].set(Vector3(0, 0, -1), Vector3(0.5, 0.5, 5));
+	//drawRay(rays[1], Vector3(0, 0.4, 0));
+
 	m1.rotateX(deg++);
-
-	demoLine.setDirection(m1 * Vector3(-1, -0.4, 0));
-
+	demoLine.setDirection(m1 * Vector3(-1, 0, -0.4));
 	drawRay(demoLine, color4);
 
+	//Vector3 point = sq.intersect(demoLine);
+	//if (point != NAN_VECTOR3)
+	//{
+	//	drawPoint(point, 0.15f, color3);
+	//}
 
-	ray.setPoint(plane1.intersect(demoLine));
-
-	Vector3 rotAxis = (demoLine.getDirection()).cross(plane1.getNormal());
-	float rotAngleByTwo = (demoLine.getDirection()).angle(plane1.getNormal());
-
-
-
-	m2.rotate(2 * rotAngleByTwo, rotAxis);
+	ray = sq.reflect(demoLine);
 
 
+	if (ray.getPoint() != NAN_VECTOR3)
+	{
+		drawPoint(ray.getPoint(), 0.15f, color3);
+		drawRay(ray, color4 * 0.75f);
+	}
 
-	ray.setDirection(-(m2 * demoLine.getDirection()));
-	drawRay(ray, color4 * 0.75f);
-	//m1.rotateX(45);
-	//ray.setDirection(m1 * demoLine.getDirection());
-	//drawLine(ray, color4 * 0.5f);
-	// draw info messages
 	showInfo();
-
 	glPopMatrix();
-
 	glutSwapBuffers();
 }
 

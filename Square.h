@@ -3,19 +3,28 @@
 
 #include "Plane.h"
 #include "Matrices.h"
+#include "Ray.h"
+#include "RT.h"
 
+#define DEFAULT_SQ_SIZE_BY_2 0.5
 
 class Square
 {
 public:
-	Square();
+	Square(float a = 2 * DEFAULT_SQ_SIZE_BY_2);
 
-	void move(const Matrix4& rhs);
+	void reset();
+
+	void transform(const Matrix4& rhs);
 
 	const Vector3& getNormal() const { return normal; }
+	const Vector3* getCorners() const { return corners; }
+
 
 	Vector3 intersect(const Line& line) const;              // intersect with a line
+	Vector3 intersect(const Ray& ray) const;              // intersect with a ray
 
+	Ray reflect(const Ray& incidantRay) const;
 
 protected:
 	static constexpr uint16_t DEFAULT_REFLECTIVENESS = REFL_MAX / 2;
@@ -28,7 +37,7 @@ protected:
 	Vector3 normal;     // normal vector of a plane
 	float d;            // coefficient of constant term: d = -(a*x0 + b*y0 + c*z0)
 	float a;	//side length
-	Vector3 corner[3];
+	Vector3 corners[4];
 	Vector3 v1;
 	Vector3 v2;
 
