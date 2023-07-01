@@ -61,6 +61,7 @@ void drawPoint(const Vector3& point, float scale, const Vector3& color);
 void drawSquare(const Square& square, const Vector3& color);
 void drawCube(const Cube& cube, const Vector3& color);
 
+void animatePSCube(Cube& cube, float speedZ = 1, float speedRot = 1, float rangeZ = 0.5);
 
 // constants
 const int SCREEN_WIDTH = 500;
@@ -70,7 +71,8 @@ const float CAMERA_ANGLE_X = 45.0f;
 const float CAMERA_ANGLE_Y = -45.0f;
 const int TEXT_WIDTH = 8;
 const int TEXT_HEIGHT = 13;
-const float DEG2RAD = acos(-1);
+const float DEG2RAD = acos(-1) / 180;
+
 const int RAY_LEN = 20;
 
 // global variables
@@ -100,7 +102,7 @@ Vector3 color3;
 Vector3 color4;
 Cylinder cylinder; // to draw aline
 Square sq, sqScreen;
-Cube c;
+Cube PSCube;
 
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv)
@@ -162,10 +164,27 @@ void drawPlane(const Plane& plane, const Vector3& color)
 
 void drawCube(const Cube& cube, const Vector3& color)
 {
+	static const float deltaTone = 0.15;
+	//Vector3 deltaColor(deltaTone, deltaTone, deltaTone);
 	FOR6i
 	{
-		drawSquare(cube.sides[i], color);
+		drawSquare(cube.sides[i], color * (1 + (i - 2.5) * deltaTone));
 	}
+}
+
+void animatePSCube(Cube& cube, float speedZ, float speedRot, float rangeZ)
+{
+	static float t = 0, prevZ = 0;
+
+	Matrix4 m;
+	float currZ = sin(DEG2RAD * t) * rangeZ / 2;
+	m.translate(0, currZ - prevZ, 0);
+	m.rotateY(speedRot);
+
+	cube.transform(m);
+
+	prevZ = currZ;
+	t += speedZ;
 }
 
 
@@ -408,6 +427,7 @@ void drawString3D(const char* str, float pos[3], float color[4], void* font)
 ///////////////////////////////////////////////////////////////////////////////
 bool initSharedMem()
 {
+	Matrix4 mc;
 	std::cout << "===== RT Tests by Piotr Sicinski =====" << std::endl;
 
 	plane1.set(2, 3, 1, 12);
@@ -416,7 +436,11 @@ bool initSharedMem()
 	demoLine.set(Vector3(1, 1, 1), Vector3(0, 0, 0));
 	ray.set(Vector3(1, 1, 1), Vector3(0, 0, 0));
 
-	c = Cube(2);
+	PSCube = Cube(3);
+	mc.rotateX(45);
+	mc.rotateZ(atan(1 / sqrt(2)) / DEG2RAD); // cant rotate by 45 and 45, becasue than top is no the top
+	PSCube.reset();
+	PSCube.transform(mc);
 
 	// plane and line colours
 	color1.set(0.8f, 0.9f, 0.8f); // plane1
@@ -596,35 +620,46 @@ void displayCB()
 	//drawPoint(Vector3(3, 3, 3), 0.2f, color3);
 
 
-	m4.scale(5);// .rotateZ(30).rotateX(30).rotateY(90);
-	m4.rotateZ(30);
-	m4.rotateX(-30);
-	m4.rotateY(90);
-	m4.translate(-5, 1, 1.8);
-	sq.reset();
-	sq.transform(m4);
-	drawSquare(sq, Vector3(0.6, 0, 0));
 
-	mc.scale(2).rotateX(30);
-	c.reset();
-	c.transform(mc);
-	drawCube(c, Vector3(0.5, 0.5, 0.5));
+	////m4.scale(5);// .rotateZ(30).rotateX(30).rotateY(90);
+	////m4.rotateZ(30);
+	////m4.rotateX(-30);
+	////m4.rotateY(90);
+	////m4.translate(-5, 1, 1.8);
+	////sq.reset();
+	////sq.transform(m4);
+	////drawSquare(sq, Vector3(0.6, 0, 0));
 
-	//rays[1].set(Vector3(0, 0, -1), Vector3(0.5, 0.5, 5));
-	//drawRay(rays[1], Vector3(0, 0.4, 0));
+	//////rays[1].set(Vector3(0, 0, -1), Vector3(0.5, 0.5, 5));
+	//////drawRay(rays[1], Vector3(0, 0.4, 0));
 
-	m1.rotateX(deg++);
-	demoLine.setDirection(m1 * Vector3(-1, 0, -0.4));
+	////m1.rotateX(deg);
+	////demoLine.setDirection(m1 * Vector3(-1, 0, -0.4));
+	////drawRay(demoLine, color4);
+
+	//////Vector3 point = sq.intersect(demoLine);
+	//////if (point != NAN_VECTOR3)
+	//////{
+	//////	drawPoint(point, 0.15f, color3);
+	//////}
+
+	////ray = sq.reflect(demoLine);
+
+	////if (ray.getPoint() != NAN_VECTOR3)
+	////{
+	////	drawPoint(ray.getPoint(), 0.15f, color3);
+	////	drawRay(ray, color4 * 0.75f);
+	////}
+
+
+	animatePSCube(PSCube, 2.4, 1.5);
+	drawCube(PSCube, Vector3(0.5, 0.5, 0.5));
+
+
+	demoLine.set(Vector3(-1, 0, -1), Vector3(5, 0, 5));
 	drawRay(demoLine, color4);
 
-	//Vector3 point = sq.intersect(demoLine);
-	//if (point != NAN_VECTOR3)
-	//{
-	//	drawPoint(point, 0.15f, color3);
-	//}
-
-	ray = sq.reflect(demoLine);
-
+	ray = PSCube.reflect(demoLine);
 
 	if (ray.getPoint() != NAN_VECTOR3)
 	{
@@ -632,6 +667,9 @@ void displayCB()
 		drawRay(ray, color4 * 0.75f);
 	}
 
+
+
+	deg++;
 	showInfo();
 	glPopMatrix();
 	glutSwapBuffers();

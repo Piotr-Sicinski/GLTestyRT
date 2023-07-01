@@ -41,5 +41,27 @@ void Cube::transform(const Matrix4& rhs)
 
 Ray Cube::reflect(const Ray& incidantRay) const
 {
-	return Ray();
+	const Vector3 incidantRayPoint = incidantRay.getPoint();
+	Ray reflRay;
+	Ray bestRay(NAN_VECTOR3, NAN_VECTOR3);
+	bool cond;
+
+	FOR6i
+	{
+		reflRay = sides[i].reflect(incidantRay);
+
+		if (std::isnan(reflRay.getPoint().x))
+		{
+			continue;
+		}
+
+		//true if no bestRay or newly calculated ray is reflected erlier than best
+		if (std::isnan(bestRay.getPoint().x) || incidantRayPoint.distance(bestRay.getPoint()) > incidantRayPoint.distance(reflRay.getPoint()))
+		{
+			bestRay = reflRay;
+			continue;
+		}
+
+	}
+	return bestRay;
 }
