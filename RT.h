@@ -1,20 +1,10 @@
 #ifndef RT_H
 #define RT_H
 
-//#include <GL/glut.h>
-//
-//#include <cstdlib>
-//#include <iostream>
-//#include <sstream>
-//#include <iomanip>
-//#include "Matrices.h"
-//#include "Plane.h"
-//#include "Line.h"
-//#include "Cylinder.h"
+#include "Common.h"
 
-#define REFL_MAX UINT16_MAX
-#define ROUGH_MAX UINT16_MAX
-#define POWER_MAX UINT16_MAX
+void fillPattern(int image[RT_SCREEN_RES][RT_SCREEN_RES]);
+
 
 
 

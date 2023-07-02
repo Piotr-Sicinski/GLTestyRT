@@ -54,6 +54,10 @@ void showInfo();
 void toOrtho();
 void toPerspective();
 
+void displayRT_CB();
+int initSecondWindow(int argc, char** argv);
+
+
 void drawPlane(const Plane& p, const Vector3& color);
 void drawRay(const Line& line, const Vector3& color);
 void drawLine(const Line& line, const Vector3& color);
@@ -104,6 +108,8 @@ Cylinder cylinder; // to draw aline
 Square sq, sqScreen;
 Cube PSCube;
 
+int image[RT_SCREEN_RES][RT_SCREEN_RES];
+
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv)
 {
@@ -113,18 +119,41 @@ int main(int argc, char** argv)
 	// register exit callback
 	atexit(exitCB);
 
-	// init GLUT and GL
-	initGLUT(argc, argv);
+	int window1 = initGLUT(argc, argv);
+	//int window2 = initSecondWindow(argc, argv);
+
+	// init  GL
 	initGL();
+
+
+
+
+	// Process events for the first window
+	glutSetWindow(window1);
+
+	// Process events for the second window
+	//glutSetWindow(window2);
 
 	// the last GLUT call (LOOP)
 	// window will be shown and display callback is triggered by events
 	// NOTE: this call never return main().
 	glutMainLoop(); /* Start GLUT event-processing loop */
 
+
 	return 0;
 }
 
+int initSecondWindow(int argc, char** argv)
+{
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH | GLUT_STENCIL);
+	glutInitWindowSize(screenWidth, screenHeight);
+	glutInitWindowPosition(600, 100);
+	int handle = glutCreateWindow("RT");
+
+	glutDisplayFunc(displayRT_CB); // Use the new display function for the second window
+
+	return handle;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // draw a plane
@@ -461,6 +490,9 @@ bool initSharedMem()
 
 	drawMode = 0; // 0:fill, 1: wireframe, 2:points
 
+	//RT
+	fillPattern(image);
+
 	return true;
 }
 
@@ -563,7 +595,7 @@ void toPerspective()
 	// set perspective viewing frustum
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(60.0f, (float)(screenWidth) / screenHeight, 1.0f, 1000.0f); // FOV, AspectRatio, NearClip, FarClip
+	gluPerspective(FOV, (float)(screenWidth) / screenHeight, 1.0f, 1000.0f); // FOV, AspectRatio, NearClip, FarClip
 
 	// switch to modelview matrix in order to set scene
 	glMatrixMode(GL_MODELVIEW);
@@ -606,6 +638,7 @@ void displayCB()
 		m3.translate(0, 0, cameraDistance - 2);
 		m3.rotateX(-cameraAngleX);
 		m3.rotateY(-cameraAngleY);
+		m3 = matrixView.invert();
 		cameraLook.setDirection(m3.getRotationMatrix() * Vector3(0, 0, 1));
 
 
@@ -652,11 +685,11 @@ void displayCB()
 	////}
 
 
-	animatePSCube(PSCube, 2.4, 1.5);
+	animatePSCube(PSCube, 2.4, 1.5, 1);
 	drawCube(PSCube, Vector3(0.5, 0.5, 0.5));
 
 
-	demoLine.set(Vector3(-1, 0, -1), Vector3(5, 0, 5));
+	demoLine.set(Vector3(-1, 0.6, -1), Vector3(5, 0, 5));
 	drawRay(demoLine, color4);
 
 	ray = PSCube.reflect(demoLine);
@@ -800,4 +833,26 @@ void specialCB(int key, int x, int y)
 void exitCB()
 {
 	clearSharedMem();
+}
+
+
+void displayRT_CB()
+{
+	toOrtho();
+
+	// Draw your image table here
+	glBegin(GL_POINTS);
+	for (int row = 0; row < RT_SCREEN_RES; row++)
+	{
+		for (int col = 0; col < RT_SCREEN_RES; col++)
+		{
+			int value = image[row][col];
+			float color = value / static_cast<float>((COLOR_DEPTH - 1));
+			glColor3f(color, color, color);
+			glVertex2f(col, row);
+		}
+	}
+	glEnd();
+
+	glutSwapBuffers();
 }

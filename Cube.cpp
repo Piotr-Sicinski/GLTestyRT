@@ -44,7 +44,6 @@ Ray Cube::reflect(const Ray& incidantRay) const
 	const Vector3 incidantRayPoint = incidantRay.getPoint();
 	Ray reflRay;
 	Ray bestRay(NAN_VECTOR3, NAN_VECTOR3);
-	bool cond;
 
 	FOR6i
 	{

@@ -16,7 +16,7 @@
 
 #include <cmath>
 #include <iostream>
-#include "RT.h"
+#include "Common.h"
 
 
 #define NAN_VECTOR3 Vector3(NAN, NAN, NAN)

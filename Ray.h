@@ -1,6 +1,6 @@
 #pragma once
 #include "Line.h"
-#include "RT.h"
+#include "Common.h"
 
 class Ray : public Line
 {

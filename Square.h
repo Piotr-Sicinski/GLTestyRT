@@ -1,10 +1,7 @@
-#ifndef SQUARE_H
-#define SQUARE_H
+//Square.h
+#pragma once
 
-#include "Plane.h"
-#include "Matrices.h"
-#include "Ray.h"
-#include "RT.h"
+#include "SceneObject.h";
 
 #define DEFAULT_SQ_SIZE_BY_2 0.5
 
@@ -43,7 +40,3 @@ protected:
 
 };
 
-
-
-
-#endif
