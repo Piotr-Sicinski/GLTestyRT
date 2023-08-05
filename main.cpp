@@ -406,19 +406,18 @@ void displayCB()
 
 
 	}
-	drawRay(demoCasted[0], color3);
-	for (size_t i = 1; i < DEMO_CASTED_RAYS_COUNT; i++)
-	{
-		drawRay(demoCasted[i], Vector3(0.7, 1, 1));
+	//drawRay(demoCasted[0], color3);
+	//for (size_t i = 1; i < DEMO_CASTED_RAYS_COUNT; i++)
+	//{
+	//	drawRay(demoCasted[i], Vector3(0.7, 1, 1));
+	//	ray = PSCube.reflect(demoCasted[i]);
+	//	if (ray.getPoint() != NAN_VECTOR3)
+	//	{
+	//		drawPoint(ray.getPoint(), 0.15f, color3);
+	//		drawRay(ray, color4 * 0.75f);
+	//	}
+	//}
 
-		ray = PSCube.reflect(demoCasted[i]);
-
-		if (ray.getPoint() != NAN_VECTOR3)
-		{
-			drawPoint(ray.getPoint(), 0.15f, color3);
-			drawRay(ray, color4 * 0.75f);
-		}
-	}
 	//drawRay(cameraLook, color3);
 	//drawSquare(sqScreen, Vector3(0.7, 1, 1));
 
@@ -462,16 +461,16 @@ void displayCB()
 	drawCube(PSCube, Vector3(0.5, 0.5, 0.5));
 
 
-	//demoLine.set(Vector3(-1, 0.5, -1), Vector3(5, 0, 5));
-	//drawRay(demoLine, color4);
+	demoLine.set(Vector3(-1, 0.5, -1), Vector3(5, 0, 5));
+	drawRay(demoLine, color4);
 
-	//ray = PSCube.reflect(demoLine);
+	ray = PSCube.reflect(demoLine);
 
-	//if (ray.getPoint() != NAN_VECTOR3)
-	//{
-	//	drawPoint(ray.getPoint(), 0.15f, color3);
-	//	drawRay(ray, color4 * 0.75f);
-	//}
+	if (ray.getPoint() != NAN_VECTOR3)
+	{
+		drawPoint(ray.getPoint(), 0.15f, color3);
+		drawRay(ray, color4 * 0.75f);
+	}
 
 
 	glPopMatrix();
