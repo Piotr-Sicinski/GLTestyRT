@@ -45,7 +45,7 @@ public:
 
 	float getDistance(const Vector3& point) const;
 
-protected:
+	//protected:
 
 	Vector3 direction;
 	Vector3 point;

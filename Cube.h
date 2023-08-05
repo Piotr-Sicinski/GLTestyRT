@@ -1,6 +1,6 @@
 //Cube.h
 #pragma once
-#include "SceneObject.h";
+#include "SceneObject.h"
 #include "Square.h"
 
 #define FOR6i for (int i = 0; i < 6; i++)

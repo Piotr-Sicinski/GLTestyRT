@@ -1,6 +1,5 @@
-//SceneObject.h
 #pragma once
-#include "Plane.h"
+
 #include "Matrices.h"
 #include "Ray.h"
 
@@ -11,5 +10,22 @@ public:
 	{
 		return Ray();
 	};
+
+	void setReflRough(uint16_t refl, uint16_t rough) {
+		if (refl >= 0 && rough >= 0 && refl <= REFL_MAX && rough <= ROUGH_MAX) {
+			reflectiveness = refl;
+			roughness = rough;
+		}
+		else {
+			raiseErr(InvalidValues);
+		}
+	}
+
+
+	static constexpr uint16_t DEFAULT_REFLECTIVENESS = REFL_MAX / 2;
+	static constexpr uint16_t DEFAULT_ROUGHNESS = ROUGH_MAX / 2;
+
+	uint16_t reflectiveness = DEFAULT_REFLECTIVENESS;
+	uint16_t roughness = DEFAULT_ROUGHNESS;
 };
 

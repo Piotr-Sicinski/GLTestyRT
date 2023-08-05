@@ -1,5 +1,5 @@
-#ifndef SCENE_H
-#define SCENE_H
+#ifndef DRAWGL_H
+#define DRAWGL_H
 
 #include <GL/glut.h>
 

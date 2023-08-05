@@ -3,7 +3,8 @@
 
 #include "Common.h"
 
-void fillPattern(int image[RT_SCREEN_RES][RT_SCREEN_RES]);
+void fillPattern();
+void fillTexture();
 
 
 

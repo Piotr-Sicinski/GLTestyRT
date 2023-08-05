@@ -18,8 +18,9 @@
 #include "Line.h"
 #include "Cylinder.h"
 
+#include "Common.h"
 #include "RT.h"
-#include "Scene.h"
+#include "DrawGL.h"
 
 #include "Ray.h"
 #include "Square.h"
@@ -28,6 +29,7 @@
 // GLUT CALLBACK functions
 void displayCB();
 void reshapeCB(int w, int h);
+void reshapeRTCB(int w, int h);
 void timerCB(int millisec);
 void idleCB();
 void keyboardCB(unsigned char key, int x, int y);
@@ -47,22 +49,17 @@ void initLights();
 void setCamera(float posX, float posY, float posZ, float targetX, float targetY, float targetZ);
 void toOrtho();
 void toPerspective();
+void toPerspectiveRT();
 int initRTWindow(int argc, char** argv);
 
 void animatePSCube(Cube& cube, float speedZ = 1, float speedRot = 1, float rangeZ = 0.5);
 
-// constants
-const int SCREEN_WIDTH = 500;
-const int SCREEN_HEIGHT = 500;
-const float CAMERA_DISTANCE = 25.0f;
-const float CAMERA_ANGLE_X = 45.0f;
-const float CAMERA_ANGLE_Y = -45.0f;
-
 
 // global variables
-void* font = GLUT_BITMAP_8_BY_13;
 int screenWidth;
 int screenHeight;
+int screenWidthRT;
+int screenHeightRT;
 bool mouseLeftDown;
 bool mouseRightDown;
 float mouseX, mouseY;
@@ -87,8 +84,13 @@ Vector3 color4;
 Square sq, sqScreen;
 Cube PSCube;
 
-int window1, window2;
-int image[RT_SCREEN_RES][RT_SCREEN_RES];
+SceneObject objects[MAX_OBJ_COUNT];
+int objN = 0;
+
+int windowGLUT, windowRT;
+bool windowRTReady;
+int image[RT_RENDER_RES][RT_RENDER_RES];
+uint8_t texture[RT_RENDER_RES * RT_RENDER_RES * 3];
 
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv)
@@ -101,13 +103,13 @@ int main(int argc, char** argv)
 
 	glutInit(&argc, argv);
 
-	window1 = initGLUTWindow(argc, argv);
+	windowGLUT = initGLUTWindow(argc, argv);
 	initGL();
 
-	window2 = initRTWindow(argc, argv);
+	windowRT = initRTWindow(argc, argv);
 
-	//glutSetWindow(window1);
-	//glutSetWindow(window2);
+	//glutSetWindow(windowGLUT);
+	//glutSetWindow(windowRT);
 
 	// window will be shown and display callback is triggered by events
 	glutMainLoop(); /* Start GLUT event-processing loop */
@@ -124,11 +126,11 @@ int initRTWindow(int argc, char** argv)
 	glutDisplayFunc(displayRT_CB); // Use the new display function for the second window
 	//glutTimerFunc(33, timerCB, 33); // redraw only every given millisec
 	//// glutIdleFunc(idleCB);                       // redraw whenever system is idle
-	//glutReshapeFunc(reshapeCB);
-	//glutKeyboardFunc(keyboardCB);
-	//glutMouseFunc(mouseCB);
-	//glutMotionFunc(mouseMotionCB);
-	//glutSpecialFunc(specialCB);
+	glutReshapeFunc(reshapeRTCB);
+	glutKeyboardFunc(keyboardCB);
+	glutMouseFunc(mouseCB);
+	glutMotionFunc(mouseMotionCB);
+	glutSpecialFunc(specialCB);
 
 	return handle;
 }
@@ -245,6 +247,9 @@ bool initSharedMem()
 	screenWidth = SCREEN_WIDTH;
 	screenHeight = SCREEN_HEIGHT;
 
+	screenWidthRT = RT_RENDER_RES;
+	screenHeightRT = RT_RENDER_RES;
+
 	mouseLeftDown = mouseRightDown = false;
 	mouseX = mouseY = 0;
 
@@ -256,7 +261,8 @@ bool initSharedMem()
 	drawMode = 0; // 0:fill, 1: wireframe, 2:points
 
 	//RT
-	fillPattern(image);
+	fillPattern();
+	fillTexture();
 
 	return true;
 }
@@ -328,6 +334,21 @@ void toPerspective()
 	glLoadIdentity();
 }
 
+void toPerspectiveRT()
+{
+	// set viewport to be the entire window
+	glViewport(0, 0, (GLsizei)screenWidthRT, (GLsizei)screenHeightRT);
+
+	// set perspective viewing frustum
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(FOV, (float)(screenWidthRT) / screenHeightRT, 1.0f, 1000.0f); // FOV, AspectRatio, NearClip, FarClip
+
+	// switch to modelview matrix in order to set scene
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
 //=============================================================================
 // CALLBACKS
 //=============================================================================
@@ -365,7 +386,8 @@ void displayCB()
 		m3.rotateX(-cameraAngleX);
 		m3.rotateY(-cameraAngleY);
 		//m3 = matrixView.invert();
-		cameraLook.setDirection(m3.getRotationMatrix() * Vector3(0, 0, 1));
+		cameraLook.setDirection(m3.getRotationMatrix() * Vector3(0, 0, -1));
+		cameraLook.setPoint(m3 * Vector3());
 
 		sqScreen.reset();
 		sqScreen.transform(m3);
@@ -433,21 +455,47 @@ void displayCB()
 
 void reshapeCB(int w, int h)
 {
-	screenWidth = w;
-	screenHeight = h;
+	//screenWidth = w;
+	//screenHeight = h;
+	int size = (w < h) ? w : h;
+	screenWidth = screenHeight = size;
+
+	// Set the viewport to the updated dimensions
+	glViewport(0, 0, screenWidth, screenHeight);
+
 	toPerspective();
+}
+
+void reshapeRTCB(int w, int h)
+{
+	//screenWidth = w;
+	//screenHeight = h;
+	int size = (w < h) ? w : h;
+	screenWidthRT = screenHeightRT = size;
+
+	// Set the viewport to the updated dimensions
+	glViewport(0, 0, screenWidthRT, screenHeightRT);
+
+	//toPerspectiveRT();
 }
 
 void timerCB(int millisec)
 {
+	static bool ready = true;
 	glutTimerFunc(millisec, timerCB, millisec);
+	//	glutPostRedisplay();
+
+	if (!ready)
+	{
+		return;
+	}
+	ready = false;
+	glutSetWindow(windowGLUT);
 	glutPostRedisplay();
 
-	//glutSetWindow(window1);
-	//glutPostRedisplay();
-
-	//glutSetWindow(window2);
-	//glutPostRedisplay();
+	glutSetWindow(windowRT);
+	glutPostRedisplay();
+	ready = true;
 }
 
 void idleCB()
@@ -572,24 +620,45 @@ void displayRT_CB()
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, screenWidth, 0, screenHeight, -1, 1);
+	gluOrtho2D(0, screenWidth, 0, screenHeight);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	// Draw your image table here
-	glBegin(GL_POINTS);
-	for (int row = 0; row < RT_SCREEN_RES; row++)
-	{
-		for (int col = 0; col < RT_SCREEN_RES; col++)
-		{
-			int value = image[row][col];
-			float color = value / static_cast<float>((COLOR_DEPTH - 1));
-			glColor3f(color, color, color);
-			glVertex2f(col, row);
-		}
-	}
+	// Enable texture mapping
+	glEnable(GL_TEXTURE_2D);
+
+	// Generate a new texture ID
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+
+	// Bind the texture
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	// Set texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// Load the image data to the texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, RT_RENDER_RES, RT_RENDER_RES, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
+
+	// Generate texture coordinates automatically
+	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+
+	// Draw a quad with the image texture
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 0); glVertex2f(0, 0);
+	glTexCoord2f(1, 0); glVertex2f(RT_RENDER_RES, 0);
+	glTexCoord2f(1, 1); glVertex2f(RT_RENDER_RES, RT_RENDER_RES);
+	glTexCoord2f(0, 1); glVertex2f(0, RT_RENDER_RES);
 	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+
+	// Delete the texture
+	glDeleteTextures(1, &textureID);
 
 	glutSwapBuffers();
 }

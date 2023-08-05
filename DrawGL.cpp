@@ -1,4 +1,4 @@
-#include "Scene.h"
+#include "DrawGL.h"
 
 Cylinder cylinder; // to draw aline
 
