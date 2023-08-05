@@ -26,6 +26,8 @@
 #include "Square.h"
 #include "Cube.h"
 
+#include "Render.h"
+
 // GLUT CALLBACK functions
 void displayCB();
 void reshapeCB(int w, int h);
@@ -84,12 +86,18 @@ Vector3 color4;
 Square sq, sqScreen;
 Cube PSCube;
 
-SceneObject objects[MAX_OBJ_COUNT];
+Render render;
+SceneObject* objects[MAX_OBJ_COUNT];
 int objN = 0;
+
+int deg = 0;
+
+Ray demoCasted[DEMO_CASTED_RAYS_COUNT];
+int demoCastedN = 0;
 
 int windowGLUT, windowRT;
 bool windowRTReady;
-int image[RT_RENDER_RES][RT_RENDER_RES];
+uint8_t image[RT_RENDER_RES][RT_RENDER_RES];
 uint8_t texture[RT_RENDER_RES * RT_RENDER_RES * 3];
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -237,6 +245,11 @@ bool initSharedMem()
 	PSCube.reset();
 	PSCube.transform(mc);
 
+	objN++;
+	objects[0] = &PSCube;
+
+	render = Render();
+
 	// plane and line colours
 	color1.set(0.8f, 0.9f, 0.8f); // plane1
 	color2.set(0.8f, 0.8f, 0.9f); // plane2
@@ -261,8 +274,8 @@ bool initSharedMem()
 	drawMode = 0; // 0:fill, 1: wireframe, 2:points
 
 	//RT
-	fillPattern();
-	fillTexture();
+	fillPattern(image);
+	fillTexture(image, texture);
 
 	return true;
 }
@@ -356,7 +369,6 @@ void toPerspectiveRT()
 void displayCB()
 {
 	Matrix4 m1, m2, m3, m4, m5, mc;
-	static int deg = 0;
 
 	// clear buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -372,7 +384,7 @@ void displayCB()
 	drawRoom(20);
 	drawAxis(20);
 
-	if (deg % 100 == 0)
+	if (deg % 100 == 20)
 	{
 		//Square sqMig;
 		//sqMig.move(Matrix4().scale(10));
@@ -391,6 +403,21 @@ void displayCB()
 
 		sqScreen.reset();
 		sqScreen.transform(m3);
+
+
+	}
+	drawRay(demoCasted[0], color3);
+	for (size_t i = 1; i < DEMO_CASTED_RAYS_COUNT; i++)
+	{
+		drawRay(demoCasted[i], Vector3(0.7, 1, 1));
+
+		ray = PSCube.reflect(demoCasted[i]);
+
+		if (ray.getPoint() != NAN_VECTOR3)
+		{
+			drawPoint(ray.getPoint(), 0.15f, color3);
+			drawRay(ray, color4 * 0.75f);
+		}
 	}
 	//drawRay(cameraLook, color3);
 	//drawSquare(sqScreen, Vector3(0.7, 1, 1));
@@ -435,20 +462,18 @@ void displayCB()
 	drawCube(PSCube, Vector3(0.5, 0.5, 0.5));
 
 
-	demoLine.set(Vector3(-1, 0.5, -1), Vector3(5, 0, 5));
-	drawRay(demoLine, color4);
+	//demoLine.set(Vector3(-1, 0.5, -1), Vector3(5, 0, 5));
+	//drawRay(demoLine, color4);
 
-	ray = PSCube.reflect(demoLine);
+	//ray = PSCube.reflect(demoLine);
 
-	if (ray.getPoint() != NAN_VECTOR3)
-	{
-		drawPoint(ray.getPoint(), 0.15f, color3);
-		drawRay(ray, color4 * 0.75f);
-	}
+	//if (ray.getPoint() != NAN_VECTOR3)
+	//{
+	//	drawPoint(ray.getPoint(), 0.15f, color3);
+	//	drawRay(ray, color4 * 0.75f);
+	//}
 
 
-
-	deg++;
 	glPopMatrix();
 	glutSwapBuffers();
 }
@@ -495,6 +520,7 @@ void timerCB(int millisec)
 
 	glutSetWindow(windowRT);
 	glutPostRedisplay();
+	deg++;
 	ready = true;
 }
 
@@ -615,6 +641,11 @@ void exitCB()
 
 void displayRT_CB()
 {
+	render.renderFrame();
+	fillTexture(render.ready.image, texture);
+
+
+
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 

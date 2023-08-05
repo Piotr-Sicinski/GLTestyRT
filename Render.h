@@ -1,6 +1,7 @@
 #pragma once
 #include "Frame.h"
 #include "SceneObject.h"
+#include "RT.h"
 
 class Render
 {

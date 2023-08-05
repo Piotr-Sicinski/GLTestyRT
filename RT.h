@@ -3,9 +3,8 @@
 
 #include "Common.h"
 
-void fillPattern();
-void fillTexture();
-
+void fillPattern(uint8_t image[RT_RENDER_RES][RT_RENDER_RES]);
+void fillTexture(uint8_t image[RT_RENDER_RES][RT_RENDER_RES], uint8_t texture[RT_RENDER_RES * RT_RENDER_RES * 3]);
 
 
 

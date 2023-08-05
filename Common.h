@@ -29,10 +29,10 @@ const float EPSILON = 0.00001f;
 const int RAY_LEN = 20;
 
 //render consts
-const int MAX_RAY_COUNT = 1000;
+const int MAX_RAY_COUNT = 10;
 const int MAX_OBJ_COUNT = 10;
 
-
+const int DEMO_CASTED_RAYS_COUNT = 153;
 
 // ERROR
 enum ERR_TYP {

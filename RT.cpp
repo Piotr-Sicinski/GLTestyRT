@@ -1,10 +1,7 @@
 #include "RT.h"
 
-extern int image[RT_RENDER_RES][RT_RENDER_RES];
-extern uint8_t texture[RT_RENDER_RES * RT_RENDER_RES * 3];
 
-
-void fillPattern()
+void fillPattern(uint8_t image[RT_RENDER_RES][RT_RENDER_RES])
 {
 	int value = 0;
 	for (int row = 0; row < RT_RENDER_RES; row++)
@@ -19,7 +16,7 @@ void fillPattern()
 	}
 }
 
-void fillTexture()
+void fillTexture(uint8_t image[RT_RENDER_RES][RT_RENDER_RES], uint8_t texture[RT_RENDER_RES * RT_RENDER_RES * 3])
 {
 	for (int row = 0; row < RT_RENDER_RES; row++)
 	{

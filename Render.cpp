@@ -2,12 +2,19 @@
 
 extern float cameraAngleX, cameraAngleY, cameraX, cameraY, cameraDistance;
 
-extern SceneObject objects[MAX_OBJ_COUNT];
+extern SceneObject* objects[MAX_OBJ_COUNT];
 extern int objN;
+extern int deg;
+
+extern uint8_t image[RT_RENDER_RES][RT_RENDER_RES];
+extern Ray demoCasted[DEMO_CASTED_RAYS_COUNT];
+extern int demoCastedN;
+
+
 
 Render::Render()
 {
-	screenDist = RT_RENDER_RES * tan(FOV * DEG2RAD / 2.0f);
+	screenDist = RT_RENDER_RES / tan(FOV * DEG2RAD / 2.0f);
 }
 
 void Render::swapFrames() {
@@ -41,11 +48,22 @@ void Render::renderFrame()
 	beginRay.setPoint(beginPoint);
 	beginRay.setDirection(camRotM * Vector3(-RT_RENDER_RES + 1, -RT_RENDER_RES + 1, -screenDist));
 
+	demoCastedN = 0;
 	for (int row = 0; row < RT_RENDER_RES; row++)
 	{
 		for (int col = 0; col < RT_RENDER_RES; col++)
 		{
+			working.image[row][col] = image[row][col] + deg;
 
+			if (deg % 300 == 0 && (RT_RENDER_RES * row + col) % (RT_RENDER_RES * RT_RENDER_RES / DEMO_CASTED_RAYS_COUNT) == 0)
+			{
+				if (demoCastedN < DEMO_CASTED_RAYS_COUNT)
+				{
+					demoCasted[demoCastedN] = beginRay;
+					demoCastedN++;
+				}
+
+			}
 
 
 			beginRay.direction += pixelDeltaY;
