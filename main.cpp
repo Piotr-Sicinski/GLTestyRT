@@ -25,6 +25,7 @@
 #include "Ray.h"
 #include "Square.h"
 #include "Cube.h"
+#include "LightPoint.h"
 
 #include "Render.h"
 
@@ -89,6 +90,8 @@ Cube PSCube;
 Render render;
 SceneObject* objects[MAX_OBJ_COUNT];
 int objN = 0;
+LightPoint* lights[MAX_LGH_COUNT];
+int lghN = 0;
 
 int deg = 0;
 
@@ -113,11 +116,7 @@ int main(int argc, char** argv)
 
 	windowGLUT = initGLUTWindow(argc, argv);
 	initGL();
-
 	windowRT = initRTWindow(argc, argv);
-
-	//glutSetWindow(windowGLUT);
-	//glutSetWindow(windowRT);
 
 	// window will be shown and display callback is triggered by events
 	glutMainLoop(); /* Start GLUT event-processing loop */
@@ -127,7 +126,7 @@ int main(int argc, char** argv)
 int initRTWindow(int argc, char** argv)
 {
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH | GLUT_STENCIL);
-	glutInitWindowSize(screenWidth, screenHeight);
+	glutInitWindowSize(screenWidthRT, screenHeightRT);
 	glutInitWindowPosition(600, 100);
 	int handle = glutCreateWindow("RT");
 
@@ -242,13 +241,10 @@ bool initSharedMem()
 	PSCube = Cube(3);
 	mc.rotateX(45);
 	mc.rotateZ(atan(1 / sqrt(2)) / DEG2RAD); // cant rotate by 45 and 45, becasue than top is no the top
-	PSCube.reset();
 	PSCube.transform(mc);
 
-	objN++;
-	objects[0] = &PSCube;
-
 	render = Render();
+	objects[objN++] = &PSCube;
 
 	// plane and line colours
 	color1.set(0.8f, 0.9f, 0.8f); // plane1
@@ -260,8 +256,8 @@ bool initSharedMem()
 	screenWidth = SCREEN_WIDTH;
 	screenHeight = SCREEN_HEIGHT;
 
-	screenWidthRT = RT_RENDER_RES;
-	screenHeightRT = RT_RENDER_RES;
+	screenWidthRT = SCREEN_WIDTH;
+	screenHeightRT = SCREEN_HEIGHT;
 
 	mouseLeftDown = mouseRightDown = false;
 	mouseX = mouseY = 0;
@@ -274,8 +270,8 @@ bool initSharedMem()
 	drawMode = 0; // 0:fill, 1: wireframe, 2:points
 
 	//RT
-	fillPattern(image);
-	fillTexture(image, texture);
+	//fillPattern(image);
+	//fillTexture(image, texture);
 
 	return true;
 }
@@ -466,7 +462,7 @@ void displayCB()
 
 	ray = PSCube.reflect(demoLine);
 
-	if (ray.getPoint() != NAN_VECTOR3)
+	if (!isnan(ray.getPoint().x))
 	{
 		drawPoint(ray.getPoint(), 0.15f, color3);
 		drawRay(ray, color4 * 0.75f);
@@ -650,7 +646,7 @@ void displayRT_CB()
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(0, screenWidth, 0, screenHeight);
+	gluOrtho2D(0, RT_RENDER_RES, 0, RT_RENDER_RES);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

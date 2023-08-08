@@ -17,9 +17,7 @@ public:
 	const Vector3& getNormal() const { return normal; }
 	const Vector3* getCorners() const { return corners; }
 
-
-	Vector3 intersect(const Line& line) const;              // intersect with a line
-	Vector3 intersect(const Ray& ray) const;              // intersect with a ray
+	Vector3 intersect(const Line& line) const;		// intersect with a line/ray
 
 	Ray reflect(const Ray& incidantRay) const;
 
@@ -27,6 +25,7 @@ protected:
 	Vector3 normal;     // normal vector of a plane
 	float d;            // coefficient of constant term: d = -(a*x0 + b*y0 + c*z0)
 	float a;	//side length
+	float aa;	//side length ^ 2
 	Vector3 corners[4];
 	Vector3 v1;
 	Vector3 v2;

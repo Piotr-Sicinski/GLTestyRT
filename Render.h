@@ -1,7 +1,6 @@
 #pragma once
 #include "Frame.h"
 #include "SceneObject.h"
-#include "RT.h"
 
 class Render
 {
@@ -10,22 +9,13 @@ public:
 
 	void swapFrames();
 	void renderFrame();
-	void castRay(Ray r);
+	uint8_t castRay(const Ray& r);
 
 	Ray rays[MAX_RAY_COUNT];
 	int rayN = 0;
 
-
-
 	Frame ready, working;
 	Line camera;
 	float screenDist;
-
-
-
-
-
-
-
 };
 

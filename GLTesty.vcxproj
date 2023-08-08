@@ -22,6 +22,7 @@
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="Cylinder.cpp" />
     <ClCompile Include="Frame.cpp" />
+    <ClCompile Include="LightPoint.cpp" />
     <ClCompile Include="Line.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Matrices.cpp" />
@@ -39,6 +40,7 @@
     <ClInclude Include="Cube.h" />
     <ClInclude Include="Cylinder.h" />
     <ClInclude Include="Frame.h" />
+    <ClInclude Include="LightPoint.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="Matrices.h" />
     <ClInclude Include="Plane.h" />

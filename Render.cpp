@@ -1,15 +1,15 @@
 #include "Render.h"
+#include "LightPoint.h"
 
 extern float cameraAngleX, cameraAngleY, cameraX, cameraY, cameraDistance;
 
 extern SceneObject* objects[MAX_OBJ_COUNT];
 extern int objN;
+extern LightPoint* lights[MAX_LGH_COUNT];
+extern int lghN;
+
 extern int deg;
-
 extern uint8_t image[RT_RENDER_RES][RT_RENDER_RES];
-extern Ray demoCasted[DEMO_CASTED_RAYS_COUNT];
-extern int demoCastedN;
-
 
 
 Render::Render()
@@ -48,23 +48,14 @@ void Render::renderFrame()
 	beginRay.setPoint(beginPoint);
 	beginRay.setDirection(camRotM * Vector3(-RT_RENDER_RES + 1, -RT_RENDER_RES + 1, -screenDist));
 
-	demoCastedN = 0;
 	for (int row = 0; row < RT_RENDER_RES; row++)
 	{
 		for (int col = 0; col < RT_RENDER_RES; col++)
 		{
-			working.image[row][col] = image[row][col] + deg;
+			//working.image[row][col] = image[row][col] + deg;
 
-			if (deg % 300 == 0 && (RT_RENDER_RES * row + col) % (RT_RENDER_RES * RT_RENDER_RES / DEMO_CASTED_RAYS_COUNT) == 0)
-			{
-				if (demoCastedN < DEMO_CASTED_RAYS_COUNT)
-				{
-					demoCasted[demoCastedN] = beginRay;
-					demoCastedN++;
-				}
 
-			}
-
+			working.image[row][col] = castRay(beginRay);
 
 			beginRay.direction += pixelDeltaY;
 		}
@@ -75,10 +66,18 @@ void Render::renderFrame()
 	swapFrames();
 }
 
-void Render::castRay(Ray r)
+uint8_t Render::castRay(const Ray& r)
 {
+	static Ray reflRay;
 	for (int i = 0; i < objN; i++)
 	{
+		reflRay = (*objects[i]).reflect(r);
 
+		if (!isnan(reflRay.getPoint().x))
+		{
+			return 255;
+		}
 	}
+
+	return 0;
 }

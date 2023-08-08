@@ -22,9 +22,9 @@ void fillTexture(uint8_t image[RT_RENDER_RES][RT_RENDER_RES], uint8_t texture[RT
 	{
 		for (int col = 0; col < RT_RENDER_RES; col++)
 		{
-			texture[3 * (row * RT_RENDER_RES + col)] = image[row][col];
-			texture[3 * (row * RT_RENDER_RES + col) + 1] = image[row][col];
-			texture[3 * (row * RT_RENDER_RES + col) + 2] = image[row][col];
+			texture[3 * (row * RT_RENDER_RES + col)] = image[col][row];
+			texture[3 * (row * RT_RENDER_RES + col) + 1] = image[col][row];
+			texture[3 * (row * RT_RENDER_RES + col) + 2] = image[col][row];
 		}
 	}
 }
