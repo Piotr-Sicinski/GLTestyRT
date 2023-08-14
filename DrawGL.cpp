@@ -337,6 +337,13 @@ void drawCube(const Cube& cube, const Vector3& color)
 	}
 }
 
+void drawLightPoint(const LightPoint& light)
+{
+	static const Vector3 color(1, 1, 0.8);
+	float scale = 0.4f * light.power / POWER_MAX;
+	drawPoint(light.point, scale, color);
+}
+
 void drawSquare(const Square& square, const Vector3& color)
 {
 	const Vector3* p = square.getCorners();
@@ -437,7 +444,6 @@ void drawPoint(const Vector3& point, float scale, const Vector3& color)
 	glDisable(GL_LIGHTING);
 
 	// transform cylinder
-
 	glPushMatrix();
 	Matrix4 m;
 	m.scale(scale, scale, 2 * scale);
@@ -452,5 +458,4 @@ void drawPoint(const Vector3& point, float scale, const Vector3& color)
 	glPopMatrix();
 	// restore default settings
 	glEnable(GL_LIGHTING);
-
 }

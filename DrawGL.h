@@ -15,6 +15,7 @@
 #include "Ray.h"
 #include "Square.h"
 #include "Cube.h"
+#include "LightPoint.h"
 
 void drawAxis(float size = 10);
 void drawRoom(float size = 10);
@@ -25,6 +26,8 @@ void drawLine(const Line& line, const Vector3& color);
 void drawPoint(const Vector3& point, float scale, const Vector3& color);
 void drawSquare(const Square& square, const Vector3& color);
 void drawCube(const Cube& cube, const Vector3& color);
+void drawLightPoint(const LightPoint& light);
+
 
 
 #endif

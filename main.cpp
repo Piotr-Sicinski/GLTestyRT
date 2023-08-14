@@ -86,6 +86,7 @@ Vector3 color3;
 Vector3 color4;
 Square sq, sqScreen;
 Cube PSCube;
+LightPoint demoLight, demoLight2;
 
 Render render;
 SceneObject* objects[MAX_OBJ_COUNT];
@@ -243,8 +244,24 @@ bool initSharedMem()
 	mc.rotateZ(atan(1 / sqrt(2)) / DEG2RAD); // cant rotate by 45 and 45, becasue than top is no the top
 	PSCube.transform(mc);
 
+	//sq
+	sq = Square(2);
+	mc.identity();
+	mc.rotateY(45);
+	mc.translate(Vector3(0, 0, -8));
+	sq.transform(mc);
+
+	//lights
+	demoLight = LightPoint(Vector3(-5, 5, 5), POWER_MAX);
+	demoLight2 = LightPoint(Vector3(-5, 10, 5), POWER_MAX / 4);
+
+
 	render = Render();
 	objects[objN++] = &PSCube;
+	objects[objN++] = &sq;
+	lights[lghN++] = &demoLight;
+	lights[lghN++] = &demoLight2;
+
 
 	// plane and line colours
 	color1.set(0.8f, 0.9f, 0.8f); // plane1
@@ -255,7 +272,6 @@ bool initSharedMem()
 	//screen
 	screenWidth = SCREEN_WIDTH;
 	screenHeight = SCREEN_HEIGHT;
-
 	screenWidthRT = SCREEN_WIDTH;
 	screenHeightRT = SCREEN_HEIGHT;
 
@@ -372,9 +388,11 @@ void displayCB()
 	glPushMatrix();
 	// tramsform camera
 	matrixView.identity();
+
 	matrixView.rotateY(cameraAngleY);
 	matrixView.rotateX(cameraAngleX);
 	matrixView.translate(0, 0, -cameraDistance);
+	matrixView.translate(-cameraX, -cameraY, 0);
 	glLoadMatrixf(matrixView.get());
 
 	drawRoom(20);
@@ -399,8 +417,6 @@ void displayCB()
 
 		sqScreen.reset();
 		sqScreen.transform(m3);
-
-
 	}
 	//drawRay(demoCasted[0], color3);
 	//for (size_t i = 1; i < DEMO_CASTED_RAYS_COUNT; i++)
@@ -414,47 +430,23 @@ void displayCB()
 	//	}
 	//}
 
+	////demonstrating how camera and screen for RT works
 	//drawRay(cameraLook, color3);
 	//drawSquare(sqScreen, Vector3(0.7, 1, 1));
 
+	////demo plane and point
 	//drawPlane(plane1, color1);
 	//drawPoint(Vector3(3, 3, 3), 0.2f, color3);
 
 
-
-	////m4.scale(5);// .rotateZ(30).rotateX(30).rotateY(90);
-	////m4.rotateZ(30);
-	////m4.rotateX(-30);
-	////m4.rotateY(90);
-	////m4.translate(-5, 1, 1.8);
-	////sq.reset();
-	////sq.transform(m4);
-	////drawSquare(sq, Vector3(0.6, 0, 0));
-
-	//////rays[1].set(Vector3(0, 0, -1), Vector3(0.5, 0.5, 5));
-	//////drawRay(rays[1], Vector3(0, 0.4, 0));
-
-	////m1.rotateX(deg);
-	////demoLine.setDirection(m1 * Vector3(-1, 0, -0.4));
-	////drawRay(demoLine, color4);
-
-	//////Vector3 point = sq.intersect(demoLine);
-	//////if (point != NAN_VECTOR3)
-	//////{
-	//////	drawPoint(point, 0.15f, color3);
-	//////}
-
-	////ray = sq.reflect(demoLine);
-
-	////if (ray.getPoint() != NAN_VECTOR3)
-	////{
-	////	drawPoint(ray.getPoint(), 0.15f, color3);
-	////	drawRay(ray, color4 * 0.75f);
-	////}
-
-
 	animatePSCube(PSCube, 2.4, 1.5, 1);
 	drawCube(PSCube, Vector3(0.5, 0.5, 0.5));
+	drawSquare(sq, Vector3(0.5, 0.7, 0.4));
+
+	for (int i = 0; i < lghN; i++)
+	{
+		drawLightPoint(*lights[i]);
+	}
 
 
 	demoLine.set(Vector3(-1, 0.5, -1), Vector3(5, 0, 5));
@@ -535,6 +527,14 @@ void keyboardCB(unsigned char key, int x, int y)
 	case ' ':
 		break;
 
+	case 'r':
+	case 'R':
+		cameraX = cameraY = 0;
+		//cameraAngleX = CAMERA_ANGLE_X;
+		//cameraAngleY = CAMERA_ANGLE_Y;
+		//cameraDistance = CAMERA_DISTANCE;
+		break;
+
 	case 'd': // switch rendering modes (fill -> wire -> point)
 	case 'D':
 		drawMode = ++drawMode % 3;
@@ -609,19 +609,19 @@ void specialCB(int key, int x, int y)
 	switch (key)
 	{
 	case GLUT_KEY_LEFT:
-		cameraX -= 1;
+		cameraX -= CAMERA_XY_MOVE_MULTIPLIER;
 		break;
 
 	case GLUT_KEY_RIGHT:
-		cameraX += 1;
+		cameraX += CAMERA_XY_MOVE_MULTIPLIER;
 		break;
 
 	case GLUT_KEY_UP:
-		cameraY += 1;
+		cameraY += CAMERA_XY_MOVE_MULTIPLIER;
 		break;
 
 	case GLUT_KEY_DOWN:
-		cameraY -= 1;
+		cameraY -= CAMERA_XY_MOVE_MULTIPLIER;
 		break;
 
 	default:;

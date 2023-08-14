@@ -5,17 +5,9 @@
 
 class SceneObject {
 public:
-	virtual void transform(const Matrix4& rhs) {};
-	virtual Ray reflect(const Ray& incidantRay) const
-	{
-		return Ray();
-	};
+	virtual void transform(const Matrix4& rhs) = 0;
+	virtual Ray reflect(const Ray& incidantRay) const = 0;
 	//virtual Vector3 intersect(const Ray& ray) const = 0;
-
-	virtual Vector3 intersect(const Ray& ray) const
-	{
-		return Vector3();
-	};
 
 	void setReflRough(uint16_t refl, uint16_t rough) {
 		if (refl >= 0 && rough >= 0 && refl <= REFL_MAX && rough <= ROUGH_MAX) {

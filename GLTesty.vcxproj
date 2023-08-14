@@ -31,7 +31,6 @@
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="RT.cpp" />
     <ClCompile Include="DrawGL.cpp" />
-    <ClCompile Include="Screen.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Square.cpp" />
   </ItemGroup>
@@ -49,7 +48,6 @@
     <ClInclude Include="RT.h" />
     <ClInclude Include="DrawGL.h" />
     <ClInclude Include="SceneObject.h" />
-    <ClInclude Include="Screen.h" />
     <ClInclude Include="Square.h" />
     <ClInclude Include="Vectors.h" />
   </ItemGroup>

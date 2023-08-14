@@ -15,6 +15,7 @@ const int SCREEN_HEIGHT = 512;
 const float CAMERA_DISTANCE = 25.0f;
 const float CAMERA_ANGLE_X = 45.0f;
 const float CAMERA_ANGLE_Y = -45.0f;
+const float CAMERA_XY_MOVE_MULTIPLIER = 0.5f;
 
 const float FOV = 60.0f;
 const int RT_RENDER_RES = 64;
@@ -44,3 +45,5 @@ enum ERR_TYP {
 
 void raiseErr(std::string msg);
 void raiseErr(ERR_TYP err);
+
+uint8_t log2(uint32_t value);

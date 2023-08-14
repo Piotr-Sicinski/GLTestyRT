@@ -28,7 +28,7 @@ void Render::swapFrames() {
 void Render::renderFrame()
 {
 	static Ray beginRay;
-	static Matrix4 camRotM;
+	static Matrix4 camRotM, camPos;
 	static Vector3 beginRayDir, beginPoint,
 		pixelDeltaX, pixelDeltaY;
 
@@ -37,11 +37,11 @@ void Render::renderFrame()
 	camRotM.rotateX(-cameraAngleX);
 	camRotM.rotateY(-cameraAngleY);
 
-	beginPoint = camRotM * Vector3(0, 0, cameraDistance);
-	//mo¿na uproœciæ daj¹c -beginPoint
+	beginPoint = camRotM * Vector3(cameraX, cameraY, cameraDistance);
+
 	camera.set(camRotM * Vector3(0, 0, -1), beginPoint);
 
-	//step of 2, because of 1 ofset in the begining corner
+	//step of 2, because of 1 offset in the begining corner
 	pixelDeltaX = camRotM * Vector3(2, 0, 0);
 	pixelDeltaY = camRotM * Vector3(0, 2, 0);
 

@@ -62,18 +62,6 @@ Vector3 Square::intersect(const Line& line) const
 	// find intersection point with plane
 	p = p + (v * t);
 
-	////checking, if intersection point is < a distant from each side od square
-	//Line l;
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	l.set(corners[(i + 1) % 4] - corners[i], corners[i]);
-	//	if (l.getDistance(p) > Vector3(corners[1] - corners[0]).length())
-	//	{
-	//		return NAN_VECTOR3;
-	//	}
-	//}
-	//return p;
-
 	dot1 = v1.dot(p - corners[0]);
 	dot2 = v2.dot(p - corners[0]);
 
